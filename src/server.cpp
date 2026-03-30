@@ -3,21 +3,33 @@
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-
-namespace http = boost::beast::http;
 
 Server::Server(asio::io_context& io_context, std::uint16_t port)
     : m_context{io_context}
     , m_port{port}
-{
-  asio::co_spawn(io_context, async_main(), asio::detached);
-  std::println("Server started on port {}", m_port);
-}
+{}
 
 Server::~Server()
 {
   std::println("Server stopped.");
+}
+
+void Server::add_route(http::verb method, const std::string& path,
+                       RequestHandler handler)
+{
+  if (auto found = m_route_handlers.find(method);
+      found != m_route_handlers.end()) {
+    found->second.emplace(path, std::move(handler));
+  } else {
+    std::map<std::string, RequestHandler> map{{path, std::move(handler)}};
+    m_route_handlers.emplace(method, std::move(map));
+  }
+}
+
+void Server::run()
+{
+  asio::co_spawn(m_context, async_main(), asio::detached);
+  std::println("Server started on port {}", m_port);
 }
 
 asio::awaitable<void> Server::async_main()
@@ -30,9 +42,8 @@ asio::awaitable<void> Server::async_main()
   }
 }
 
-asio::awaitable<void>
-handle_http_request(http::request<http::string_body>& request,
-                    tcp::socket& socket)
+asio::awaitable<void> Server::handle_http_request(tcp::socket& socket,
+                                                  HttpRequest& request)
 {
   auto const major = request.version() / 10;
   auto const minor = request.version() % 10;
@@ -45,31 +56,32 @@ handle_http_request(http::request<http::string_body>& request,
 
   http::response<http::string_body> response;
 
-  switch (request.method()) {
-  case http::verb::get: {
-    if (request.target() == "/hello") {
-      response.result(http::status::ok);
-      response.body() = "ciao!";
-      break;
+  auto maybe_method = m_route_handlers.find(request.method());
+  if (maybe_method != m_route_handlers.end()) {
+    auto method_route = maybe_method->first;
+    auto maybe_route  = maybe_method->second.find(request.target());
+    if (maybe_route != maybe_method->second.end()) {
+      response = maybe_route->second(request);
+    } else {
+      response.result(http::status::not_found);
     }
+  } else {
     response.result(http::status::not_found);
-  } break;
-  default:
-    response.result(http::status::not_found);
-    break;
   }
+
   response.prepare_payload();
   co_await http::async_write(socket, response);
 }
 
 asio::awaitable<void> Server::handle_client(tcp::socket socket)
 {
-  std::println("New client connected. IP: {}, port: {}",
+  std::println("New client connected. IP: {}, port: {}\n",
                socket.remote_endpoint().address().to_string(),
                socket.remote_endpoint().port());
-  boost::beast::flat_buffer buffer;
-  http::request_parser<http::string_body> parser;
+
   for (;;) {
+    boost::beast::flat_buffer buffer;
+    http::request_parser<http::string_body> parser;
     auto [ec, size] = co_await http::async_read(
         socket, buffer, parser, asio::as_tuple(asio::use_awaitable));
     auto request = parser.get();
@@ -79,6 +91,6 @@ asio::awaitable<void> Server::handle_client(tcp::socket socket)
       }
       break;
     }
-    co_await handle_http_request(request, socket);
+    co_await handle_http_request(socket, request);
   }
 }

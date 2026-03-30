@@ -1,21 +1,20 @@
+#include "arguments.hpp"
 #include "server.hpp"
 
-struct Args
+void add_routes(Server& server)
 {
-  std::uint16_t port = 6565;
-};
+  server.add_route(http::verb::get, "/hello", [](HttpRequest& req) {
+    HttpResponse res{http::status::ok, req.version()};
+    res.body() = "Hello, World!\n";
+    return res;
+  });
 
-Args parse_args(int argc, char* argv[])
-{
-  Args args;
-  for (int i = 1; i < argc; ++i) {
-    std::string flag{argv[i]};
-    if (flag == "--port" || flag == "-p") {
-      args.port = static_cast<std::uint16_t>(std::stoi(argv[i + 1]));
-      ++i;
-    }
-  }
-  return args;
+  server.add_route(http::verb::post, "/hello", [](HttpRequest& req) {
+    std::println("{}", req.body());
+    HttpResponse res{http::status::ok, req.version()};
+    res.body() = "done!\n";
+    return res;
+  });
 }
 
 int main(int argc, char* argv[])
@@ -23,6 +22,8 @@ int main(int argc, char* argv[])
   auto const args = parse_args(argc, argv);
   asio::io_context io_context;
   Server server{io_context, args.port};
+  add_routes(server);
+  server.run();
   io_context.run();
   return EXIT_SUCCESS;
 }

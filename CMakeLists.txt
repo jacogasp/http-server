@@ -44,6 +44,7 @@ find_package(Boost REQUIRED COMPONENTS asio beast)
 # Targets
 add_executable(${EXECUTABLE_NAME}
   src/main.cpp
+  src/arguments.cpp
   src/server.cpp
 )
 
