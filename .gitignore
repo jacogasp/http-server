@@ -1,0 +1,8 @@
+# build artifacts
+build/
+.cache/
+compile_commands.json
+
+# editors
+.vscode/
+.zed/

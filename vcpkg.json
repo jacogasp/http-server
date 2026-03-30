@@ -1,0 +1,7 @@
+{
+  "name": "cmake-vcpkg-template",
+  "dependencies": [
+    "doctest",
+    "boost-asio"
+  ]
+}
