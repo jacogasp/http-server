@@ -44,6 +44,7 @@ find_package(Boost REQUIRED COMPONENTS asio)
 # Targets
 add_executable(${EXECUTABLE_NAME}
   src/main.cpp
+  src/server.cpp
 )
 
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE Boost::asio)
