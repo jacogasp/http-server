@@ -80,9 +80,9 @@ asio::awaitable<void> HttpServer::handle_http_request(tcp::socket& socket,
 
   auto maybe_method = m_route_handlers.find(request.method());
   if (maybe_method != m_route_handlers.end()) {
-    auto method_route = maybe_method->first;
-    auto maybe_route  = maybe_method->second.find(request.target());
-    if (maybe_route != maybe_method->second.end()) {
+    auto& method     = maybe_method->second;
+    auto maybe_route = method.find(request.target());
+    if (maybe_route != method.end()) {
       response = maybe_route->second(request);
     } else {
       response.result(http::status::not_found);
