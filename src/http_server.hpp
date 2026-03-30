@@ -1,5 +1,5 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#ifndef HTTP_SERVER_HPP
+#define HTTP_SERVER_HPP
 
 #include <boost/asio.hpp>
 #include <boost/asio/awaitable.hpp>

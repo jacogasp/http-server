@@ -1,5 +1,5 @@
 #include "arguments.hpp"
-#include "server.hpp"
+#include "http_server.hpp"
 
 void add_routes(HttpServer& server)
 {

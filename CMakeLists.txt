@@ -39,7 +39,7 @@ find_package(Boost REQUIRED COMPONENTS asio beast)
 
 # Targets
 add_library(libhttpserver OBJECT
-  src/server.cpp
+  src/http_server.cpp
 )
 
 target_link_libraries(libhttpserver PUBLIC Boost::asio Boost::beast)
