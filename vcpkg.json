@@ -2,6 +2,7 @@
   "name": "cmake-vcpkg-template",
   "dependencies": [
     "doctest",
-    "boost-asio"
+    "boost-asio",
+    "boost-beast"
   ]
 }

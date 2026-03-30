@@ -2,7 +2,9 @@
 #define SERVER_HPP
 
 #include <boost/asio.hpp>
+#include <boost/asio/awaitable.hpp>
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/streambuf.hpp>
 
 #include <cstdint>
 
