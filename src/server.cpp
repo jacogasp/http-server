@@ -51,7 +51,7 @@ asio::awaitable<void> HttpServer::handle_client(tcp::socket socket)
   for (;;) {
     boost::beast::flat_buffer buffer;
     http::request_parser<http::string_body> parser;
-    auto [ec, size] = co_await http::async_read(
+    auto [ec, _] = co_await http::async_read(
         socket, buffer, parser, asio::as_tuple(asio::use_awaitable));
     auto request = parser.get();
     if (ec) {
