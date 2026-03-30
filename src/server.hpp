@@ -19,7 +19,7 @@ using HttpRequest    = http::request<http::string_body>;
 using HttpResponse   = http::response<http::string_body>;
 using RequestHandler = std::function<HttpResponse(HttpRequest&)>;
 
-class Server
+class HttpServer
 {
   asio::io_context& m_context;
   std::uint16_t m_port;
@@ -30,8 +30,8 @@ class Server
   asio::awaitable<void> handle_http_request(tcp::socket&, HttpRequest&);
 
  public:
-  Server(asio::io_context& io_context, std::uint16_t port);
-  ~Server();
+  HttpServer(asio::io_context& io_context, std::uint16_t port);
+  ~HttpServer();
 
   void add_route(http::verb, const std::string& path, RequestHandler handler);
   void run();

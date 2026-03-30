@@ -1,7 +1,7 @@
 #include "arguments.hpp"
 #include "server.hpp"
 
-void add_routes(Server& server)
+void add_routes(HttpServer& server)
 {
   server.add_route(http::verb::get, "/hello", [](HttpRequest& req) {
     HttpResponse res{http::status::ok, req.version()};
@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 {
   auto const args = parse_args(argc, argv);
   asio::io_context io_context;
-  Server server{io_context, args.port};
+  HttpServer server{io_context, args.port};
   add_routes(server);
   server.run();
   io_context.run();

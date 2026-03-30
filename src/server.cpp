@@ -4,18 +4,18 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 
-Server::Server(asio::io_context& io_context, std::uint16_t port)
+HttpServer::HttpServer(asio::io_context& io_context, std::uint16_t port)
     : m_context{io_context}
     , m_port{port}
 {}
 
-Server::~Server()
+HttpServer::~HttpServer()
 {
   std::println("Server stopped.");
 }
 
-void Server::add_route(http::verb method, const std::string& path,
-                       RequestHandler handler)
+void HttpServer::add_route(http::verb method, const std::string& path,
+                           RequestHandler handler)
 {
   if (auto found = m_route_handlers.find(method);
       found != m_route_handlers.end()) {
@@ -26,13 +26,13 @@ void Server::add_route(http::verb method, const std::string& path,
   }
 }
 
-void Server::run()
+void HttpServer::run()
 {
   asio::co_spawn(m_context, async_main(), asio::detached);
   std::println("Server started on port {}", m_port);
 }
 
-asio::awaitable<void> Server::async_main()
+asio::awaitable<void> HttpServer::async_main()
 {
   auto executor = co_await asio::this_coro::executor;
   auto acceptor = tcp::acceptor(executor, {tcp::v4(), m_port});
@@ -42,7 +42,7 @@ asio::awaitable<void> Server::async_main()
   }
 }
 
-asio::awaitable<void> Server::handle_client(tcp::socket socket)
+asio::awaitable<void> HttpServer::handle_client(tcp::socket socket)
 {
   std::println("New client connected. IP: {}, port: {}\n",
                socket.remote_endpoint().address().to_string(),
@@ -64,8 +64,8 @@ asio::awaitable<void> Server::handle_client(tcp::socket socket)
   }
 }
 
-asio::awaitable<void> Server::handle_http_request(tcp::socket& socket,
-                                                  HttpRequest& request)
+asio::awaitable<void> HttpServer::handle_http_request(tcp::socket& socket,
+                                                      HttpRequest& request)
 {
   auto const major = request.version() / 10;
   auto const minor = request.version() % 10;
