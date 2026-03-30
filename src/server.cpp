@@ -42,6 +42,28 @@ asio::awaitable<void> Server::async_main()
   }
 }
 
+asio::awaitable<void> Server::handle_client(tcp::socket socket)
+{
+  std::println("New client connected. IP: {}, port: {}\n",
+               socket.remote_endpoint().address().to_string(),
+               socket.remote_endpoint().port());
+
+  for (;;) {
+    boost::beast::flat_buffer buffer;
+    http::request_parser<http::string_body> parser;
+    auto [ec, size] = co_await http::async_read(
+        socket, buffer, parser, asio::as_tuple(asio::use_awaitable));
+    auto request = parser.get();
+    if (ec) {
+      if (ec == http::error::end_of_stream) {
+        std::println("\nClient disconnected.");
+      }
+      break;
+    }
+    co_await handle_http_request(socket, request);
+  }
+}
+
 asio::awaitable<void> Server::handle_http_request(tcp::socket& socket,
                                                   HttpRequest& request)
 {
@@ -71,26 +93,4 @@ asio::awaitable<void> Server::handle_http_request(tcp::socket& socket,
 
   response.prepare_payload();
   co_await http::async_write(socket, response);
-}
-
-asio::awaitable<void> Server::handle_client(tcp::socket socket)
-{
-  std::println("New client connected. IP: {}, port: {}\n",
-               socket.remote_endpoint().address().to_string(),
-               socket.remote_endpoint().port());
-
-  for (;;) {
-    boost::beast::flat_buffer buffer;
-    http::request_parser<http::string_body> parser;
-    auto [ec, size] = co_await http::async_read(
-        socket, buffer, parser, asio::as_tuple(asio::use_awaitable));
-    auto request = parser.get();
-    if (ec) {
-      if (ec == http::error::end_of_stream) {
-        std::println("\nClient disconnected.");
-      }
-      break;
-    }
-    co_await handle_http_request(socket, request);
-  }
 }
