@@ -19,10 +19,6 @@ endif()
 
 project(http-server)
 
-string(TOLOWER "${PROJECT_NAME}" EXECUTABLE_NAME)
-
-message("Welcome to ${PROJECT_NAME}")
-
 include(CTest)
 
 # Export compile_commands.json
@@ -42,13 +38,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Boost REQUIRED COMPONENTS asio beast)
 
 # Targets
-add_executable(${EXECUTABLE_NAME}
-  src/main.cpp
-  src/arguments.cpp
+add_library(libhttpserver OBJECT
   src/server.cpp
 )
 
-target_link_libraries(${EXECUTABLE_NAME} PRIVATE Boost::asio)
+target_link_libraries(libhttpserver PUBLIC Boost::asio Boost::beast)
+
+add_executable(http-server
+  src/main.cpp
+  src/arguments.cpp
+)
+
+target_link_libraries(http-server PRIVATE libhttpserver)
 
 # Tests
 if (BUILD_TESTING)
