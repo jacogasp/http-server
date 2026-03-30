@@ -4,16 +4,12 @@
 void add_routes(HttpServer& server)
 {
   server.add_route(http::verb::get, "/hello", [](HttpRequest& req) {
-    HttpResponse res{http::status::ok, req.version()};
-    res.body() = "Hello, World!\n";
-    return res;
+    return HttpResponse{http::status::ok, req.version(), "Hello, World!\n"};
   });
 
   server.add_route(http::verb::post, "/hello", [](HttpRequest& req) {
     std::println("{}", req.body());
-    HttpResponse res{http::status::ok, req.version()};
-    res.body() = "done!\n";
-    return res;
+    return HttpResponse{http::status::ok, req.version(), "done!\n"};
   });
 }
 
