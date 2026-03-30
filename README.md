@@ -23,3 +23,7 @@ Options:
   -p, --port <port>  Port to listen on (default: 6565)
   -h, --help         Show this help message
 ```
+
+## Acknowledgements
+
+Inspired by [https://github.com/rsreds/fastleaderboard](https://github.com/rsreds/fastleaderboard/tree/main).
