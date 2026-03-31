@@ -12,8 +12,8 @@ struct std::formatter<HttpRequest> : std::formatter<std::string_view>
   {
     auto const major = req.version() / 10;
     auto const minor = req.version() % 10;
-    auto s = std::format("{} {} HTTP/{}.{}\n", req.method_string(), req.target(),
-                         major, minor);
+    auto s           = std::format("{} {} HTTP/{}.{}\n", req.method_string(),
+                                   req.target(), major, minor);
     for (auto&& header : req) {
       s += std::format("{}: {}\n", header.name_string(), header.value());
     }
@@ -72,9 +72,7 @@ asio::awaitable<void> HttpServer::handle_client(tcp::socket socket)
         socket, buffer, parser, asio::as_tuple(asio::use_awaitable));
     auto request = parser.get();
     if (ec) {
-      if (ec == http::error::end_of_stream) {
-        std::println("\nClient disconnected.");
-      }
+      std::println("\nClient disconnected.");
       break;
     }
     co_await handle_http_request(socket, request);
