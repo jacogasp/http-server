@@ -4,6 +4,23 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 
+template<>
+struct std::formatter<HttpRequest> : std::formatter<std::string_view>
+{
+  using Parent = std::formatter<std::string_view>;
+  auto format(const HttpRequest& req, std::format_context& ctx) const
+  {
+    auto const major = req.version() / 10;
+    auto const minor = req.version() % 10;
+    auto s = std::format("{} {} HTTP/{}.{}\n", req.method_string(), req.target(),
+                         major, minor);
+    for (auto&& header : req) {
+      s += std::format("{}: {}\n", header.name_string(), header.value());
+    }
+    return Parent::format(std::string_view(s), ctx);
+  }
+};
+
 HttpServer::HttpServer(asio::io_context& io_context, std::uint16_t port)
     : m_context{io_context}
     , m_port{port}
@@ -67,17 +84,8 @@ asio::awaitable<void> HttpServer::handle_client(tcp::socket socket)
 asio::awaitable<void> HttpServer::handle_http_request(tcp::socket& socket,
                                                       HttpRequest& request)
 {
-  auto const major = request.version() / 10;
-  auto const minor = request.version() % 10;
-  std::println("{} {} HTTP/{}.{}", request.method_string(), request.target(),
-               major, minor);
-
-  for (auto&& header : request) {
-    std::println("{}: {}", header.name_string(), header.value());
-  }
-
+  std::println("{}", request);
   http::response<http::string_body> response;
-
   auto maybe_method = m_route_handlers.find(request.method());
   if (maybe_method != m_route_handlers.end()) {
     auto& method     = maybe_method->second;
@@ -90,7 +98,6 @@ asio::awaitable<void> HttpServer::handle_http_request(tcp::socket& socket,
   } else {
     response.result(http::status::not_found);
   }
-
   response.prepare_payload();
   co_await http::async_write(socket, response);
 }
