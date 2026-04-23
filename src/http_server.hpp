@@ -18,12 +18,13 @@ using boost::asio::ip::tcp;
 using HttpRequest    = http::request<http::string_body>;
 using HttpResponse   = http::response<http::string_body>;
 using RequestHandler = std::function<HttpResponse(HttpRequest&)>;
+using RouteHandlers  = std::map<std::string, RequestHandler>;
 
 class HttpServer
 {
   asio::io_context& m_context;
   std::uint16_t m_port;
-  std::map<http::verb, std::map<std::string, RequestHandler>> m_route_handlers;
+  std::map<http::verb, RouteHandlers> m_route_handlers;
 
   asio::awaitable<void> async_main();
   asio::awaitable<void> handle_client(tcp::socket);

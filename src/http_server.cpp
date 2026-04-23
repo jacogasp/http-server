@@ -34,13 +34,8 @@ HttpServer::~HttpServer()
 void HttpServer::add_route(http::verb method, const std::string& path,
                            RequestHandler handler)
 {
-  if (auto found = m_route_handlers.find(method);
-      found != m_route_handlers.end()) {
-    found->second.emplace(path, std::move(handler));
-  } else {
-    std::map<std::string, RequestHandler> map{{path, std::move(handler)}};
-    m_route_handlers.emplace(method, std::move(map));
-  }
+  m_route_handlers.try_emplace(method, RouteHandlers{})
+      .first->second.emplace(path, std::move(handler));
 }
 
 void HttpServer::run()
